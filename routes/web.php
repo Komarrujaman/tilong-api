@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Hobo\HoboController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -16,3 +17,8 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return view('welcome');
 });
+
+// Hobo Endpoint
+Route::get('loginHobo', [HoboController::class, 'login']);
+Route::get('awsHobo', [HoboController::class, 'aws']);
+Route::get('/fetch-and-save', [HoboController::class, 'fetchDataAndSave']);

@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\Hobo\HoboController;
+use App\Http\Controllers\Hobo\LoggerController;
 use App\Http\Controllers\RoleController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -16,8 +18,8 @@ use Illuminate\Support\Facades\Route;
 |
 */
 // User Management
-Route::post('register', [AuthController::class, 'register']);
 Route::post('login', [AuthController::class, 'login']);
+Route::post('register', [AuthController::class, 'register']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('all', [AuthController::class, 'allUser']);
     Route::get('user', [AuthController::class, 'show']);
@@ -29,3 +31,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('role', [RoleController::class, 'index']);
     Route::post('/role/add', [RoleController::class, 'store']);
 });
+
+
+// HOBO Endpoint
+Route::post('loginHobo', [HoboController::class, 'login']);
+Route::get('awsHobo', [HoboController::class, 'aws']);
+
+
+// Device Management
+// Logger Management
+Route::post('/logger/add', [LoggerController::class, 'store']);
