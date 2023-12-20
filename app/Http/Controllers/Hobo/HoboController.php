@@ -129,7 +129,7 @@ class HoboController extends Controller
                 // Simpan data sensor karena belum ada data dengan timestamp yang sama
                 $dataSensor = new DataSensor([
                     'sensor_id' => $sensor->id,
-                    'data_type_code' => $apiDatumArray['data_type_id'],
+                    'data_type_id' => $apiDatumArray['data_type_id'],
                     'si_value' => $apiDatumArray['si_value'],
                     'si_unit' => $apiDatumArray['si_unit'],
                     'us_value' => $apiDatumArray['us_value'],
