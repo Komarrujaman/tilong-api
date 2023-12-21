@@ -76,7 +76,7 @@ class HoboController extends Controller
         foreach ($aws_logger as $index) {
             $sn  = $index['logger_sn'];
             try {
-                $request = new Request('GET', 'https://webservice.hobolink.com/ws/data/file/JSON/user/30859?loggers=' . $sn . '&start_date_time=2023-12-21 00:00:00&end_date_time=2023-12-21 14:29:00', $headers);
+                $request = new Request('GET', 'https://webservice.hobolink.com/ws/data/file/JSON/user/30859?loggers=' . $sn . '&start_date_time=2023-12-21 14:00:00&end_date_time=2023-12-21 22:40:00', $headers);
                 $response = $client->sendAsync($request)->wait();
                 $res = json_decode($response->getBody());
 
@@ -208,7 +208,7 @@ class HoboController extends Controller
         foreach ($wl_logger as $index) {
             $sn = $index['logger_sn'];
             try {
-                $request = new Request('GET', 'https://webservice.hobolink.com/ws/data/file/JSON/user/30859?loggers=' . $sn . '&start_date_time=2023-12-20 17:00:00&end_date_time=2023-12-21 08:00:00', $headers);
+                $request = new Request('GET', 'https://webservice.hobolink.com/ws/data/file/JSON/user/30859?loggers=' . $sn . '&start_date_time=2023-12-21 14:00:00&end_date_time=2023-12-21 22:40:00', $headers);
                 $response = $client->sendAsync($request)->wait();
                 $res = json_decode($response->getBody());
                 $observationList = array_merge($observationList, $res->{'observation_list'});
