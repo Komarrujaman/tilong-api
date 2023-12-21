@@ -65,34 +65,41 @@ class HoboController extends Controller
             'Authorization' => 'Bearer ' . $token
         ];
 
-        try {
-            $request = new Request('GET', 'https://webservice.hobolink.com/ws/data/file/JSON/user/30859?loggers=20780458&start_date_time=2023-12-20 17:00:00&end_date_time=2023-12-21 08:00:00', $headers);
-            $response = $client->sendAsync($request)->wait();
-            $res = json_decode($response->getBody());
+        $aws_logger = Loggers::allLogger();
+        $observationList = [];
 
-            return $res->{'observation_list'};
-        } catch (RequestException $e) {
-            // Lakukan penanganan kesalahan, misalnya token kadaluwarsa
-            if ($e->getResponse() && $e->getResponse()->getStatusCode() == 401) {
-                // Jika mendeteksi token kadaluwarsa, panggil fungsi login
-                $loginResult = $this->login();
+        foreach ($aws_logger as $index) {
+            $sn  = $index['logger_sn'];
+            try {
+                $request = new Request('GET', 'https://webservice.hobolink.com/ws/data/file/JSON/user/30859?loggers=' . $sn . '&start_date_time=2023-12-20 17:00:00&end_date_time=2023-12-21 08:00:00', $headers);
+                $response = $client->sendAsync($request)->wait();
+                $res = json_decode($response->getBody());
 
-                // Periksa apakah login berhasil
-                if (property_exists($loginResult, 'access_token')) {
-                    // Jika berhasil, simpan token ke dalam session
-                    Session::put('token_hobo', $loginResult->access_token);
+                $observationList = array_merge($observationList, $res->{'observation_list'});
+            } catch (RequestException $e) {
+                // Lakukan penanganan kesalahan, misalnya token kadaluwarsa
+                if ($e->getResponse() && $e->getResponse()->getStatusCode() == 401) {
+                    // Jika mendeteksi token kadaluwarsa, panggil fungsi login
+                    $loginResult = $this->login();
 
-                    // Coba kembali permintaan API dengan token baru
-                    return $this->aws();
-                } else {
-                    // Jika login gagal, kembalikan respons kesalahan
-                    return response()->json(['error' => 'Login failed.'], 401);
+                    // Periksa apakah login berhasil
+                    if (property_exists($loginResult, 'access_token')) {
+                        // Jika berhasil, simpan token ke dalam session
+                        Session::put('token_hobo', $loginResult->access_token);
+
+                        // Coba kembali permintaan API dengan token baru
+                        return $this->aws();
+                    } else {
+                        // Jika login gagal, kembalikan respons kesalahan
+                        return response()->json(['error' => 'Login failed.'], 401);
+                    }
                 }
-            }
 
-            // Penanganan kesalahan lainnya
-            return response()->json(['error' => 'Something went wrong.'], 500);
+                // Penanganan kesalahan lainnya
+                return response()->json(['error' => 'Something went wrong.'], 500);
+            }
         }
+        return $observationList;
     }
 
     public function saveDataFromApi($apiData)

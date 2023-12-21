@@ -14,4 +14,20 @@ class Loggers extends Model
     {
         return $this->hasMany(Sensors::class, 'logger_id');
     }
+
+    public static function allLogger()
+    {
+        $logger = self::all();
+        $formatted = $logger->map(function ($storedData) {
+            return [
+                'id' => $storedData['id'],
+                'logger_sn' => $storedData['sn'],
+                'nama_loger' => $storedData['nama'],
+                'lat' => $storedData['lat'],
+                'lng' => $storedData['lng'],
+            ];
+        });
+
+        return $formatted->toArray();
+    }
 }
