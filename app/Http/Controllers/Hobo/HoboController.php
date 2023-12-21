@@ -11,6 +11,8 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Psr7\Request;
 use Illuminate\Support\Facades\Session;
 use GuzzleHttp\Exception\RequestException;
+use DateTime;
+use DateTimeZone;
 
 class HoboController extends Controller
 {
@@ -74,9 +76,17 @@ class HoboController extends Controller
         foreach ($aws_logger as $index) {
             $sn  = $index['logger_sn'];
             try {
-                $request = new Request('GET', 'https://webservice.hobolink.com/ws/data/file/JSON/user/30859?loggers=' . $sn . '&start_date_time=2023-12-20 17:00:00&end_date_time=2023-12-21 08:00:00', $headers);
+                $request = new Request('GET', 'https://webservice.hobolink.com/ws/data/file/JSON/user/30859?loggers=' . $sn . '&start_date_time=2023-12-21 00:00:00&end_date_time=2023-12-21 14:29:00', $headers);
                 $response = $client->sendAsync($request)->wait();
                 $res = json_decode($response->getBody());
+
+                // Konversi timestamp dari UTC ke zona waktu Samarinda
+                foreach ($res->{'observation_list'} as $observation) {
+                    $utcTimestamp = new DateTime($observation->timestamp, new DateTimeZone('UTC'));
+                    $utcTimestamp->setTimezone(new DateTimeZone('Asia/Makassar')); // Ganti dengan 'Asia/Samarinda' jika perlu
+
+                    $observation->timestamp = $utcTimestamp->format('Y-m-d H:i:s');
+                }
 
                 $observationList = array_merge($observationList, $res->{'observation_list'});
             } catch (RequestException $e) {
