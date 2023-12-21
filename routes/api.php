@@ -53,3 +53,5 @@ Route::get('/awlrHobo', [WLController::class, 'awlr']);
 // Data Management
 // AWS
 Route::get('aws-data', [DataSensorController::class, 'index']);
+// WL
+Route::get('awlr-data', [DataSensorController::class, 'waterLevel']);

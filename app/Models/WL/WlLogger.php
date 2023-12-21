@@ -10,6 +10,11 @@ class WlLogger extends Model
     use HasFactory;
     protected $fillable = ['sn', 'nama', 'lat', 'lng'];
 
+    public function sensors()
+    {
+        return $this->hasMany(WlSensor::class, 'logger_id');
+    }
+
     public static function allLogger()
     {
         $logger = self::all();

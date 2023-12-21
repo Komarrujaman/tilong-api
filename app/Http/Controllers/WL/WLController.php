@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Wl;
 
 use App\Http\Controllers\Controller;
-use App\Http\Controllers\WL\WlLoggerController;
 use App\Models\WL\WlDataSensor;
 use App\Models\WL\WlLogger;
 use App\Models\WL\WlSensor;
