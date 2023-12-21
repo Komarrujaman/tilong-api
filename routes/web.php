@@ -30,5 +30,5 @@ Route::get('aws-db', [DataSensorController::class, 'index']);
 
 Route::get('/awlrHobo', [WLController::class, 'awlr']);
 Route::get('awlr', [WlLoggerController::class, 'index']);
-Route::get('awlr/fetch-and-save', [WLController::class, 'fetchDataAndSave']);
+Route::get('awlr/fetch-and-save', [HoboController::class, 'saveAwlr']);
 Route::get('awlr-data', [DataSensorController::class, 'waterLevel']);

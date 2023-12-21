@@ -29,7 +29,7 @@ class getDataHobo extends Command
     public function handle()
     {
         $hoboController = new HoboController();
-        $hoboController->fetchDataAndSave();
+        $hoboController->saveAwlr();
 
         $this->info('AWS Data fetched and saved successfully!');
     }
