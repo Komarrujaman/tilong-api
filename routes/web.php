@@ -27,8 +27,11 @@ Route::get('loginHobo', [HoboController::class, 'login']);
 Route::get('awsHobo', [HoboController::class, 'aws']);
 Route::get('/fetch-and-save', [HoboController::class, 'fetchDataAndSave']);
 Route::get('aws-db', [DataSensorController::class, 'index']);
+Route::get('aws-last', [DataSensorController::class, 'awsLast']);
+
 
 Route::get('/awlrHobo', [WLController::class, 'awlr']);
 Route::get('awlr', [WlLoggerController::class, 'index']);
 Route::get('awlr/fetch-and-save', [HoboController::class, 'saveAwlr']);
 Route::get('awlr-data', [DataSensorController::class, 'waterLevel']);
+Route::get('awlr-last', [DataSensorController::class, 'awlrLast']);

@@ -27,24 +27,16 @@ class DataSensorController extends Controller
     public function awsLast()
     {
         $data = Loggers::with(['sensors' => function ($query) {
-            $query->with(['dataSensor' => function ($subquery) {
-                $subquery->select(
-                    'sensor_id',
-                    'data_type_id',
-                    'si_value',
-                    'si_unit',
-                    'us_value',
-                    'us_unit',
-                    'scaled_value',
-                    'scaled_unit',
-                    'sinyal',
-                    'timestamp',
-                    DB::raw('MAX(timestamp) as latest_timestamp')
-                )
-                    ->groupBy('sensor_id', 'data_type_id', 'si_value', 'si_unit', 'us_value', 'us_unit', 'scaled_value', 'scaled_unit', 'sinyal', 'timestamp');
-            }])
-                ->orderBy('id', 'asc');
+            $query->join(DB::raw('(SELECT sensor_id, MAX(timestamp) as latest_timestamp FROM data_sensors GROUP BY sensor_id) as latest_data'), function ($join) {
+                $join->on('sensors.id', '=', 'latest_data.sensor_id');
+            })
+                ->leftJoin('data_sensors', function ($join) {
+                    $join->on('sensors.id', '=', 'data_sensors.sensor_id')
+                        ->on('data_sensors.timestamp', '=', 'latest_data.latest_timestamp');
+                })
+                ->select('sensors.*', 'data_sensors.*');
         }])
+            ->orderBy('id', 'asc')
             ->get();
 
         return $data;
@@ -53,27 +45,16 @@ class DataSensorController extends Controller
     public function awlrLast()
     {
         $data = WlLogger::with(['sensors' => function ($query) {
-            $query->with(['dataSensor' => function ($subquery) {
-                $subquery->select(
-                    'sensor_id',
-                    'data_type_id',
-                    'si_value',
-                    'si_unit',
-                    'us_value',
-                    'us_unit',
-                    'scaled_value',
-                    'scaled_unit',
-                    'volume',
-                    'debit',
-                    'level_mdpl',
-                    'sinyal',
-                    'timestamp',
-                    DB::raw('MAX(timestamp) as latest_timestamp')
-                )
-                    ->groupBy('sensor_id', 'data_type_id', 'si_value', 'si_unit', 'us_value', 'us_unit', 'scaled_value', 'scaled_unit', 'volume', 'debit', 'level_mdpl', 'sinyal', 'timestamp');
-            }])
-                ->orderBy('id', 'asc');
+            $query->join(DB::raw('(SELECT sensor_id, MAX(timestamp) as latest_timestamp FROM wl_data_sensors GROUP BY sensor_id) as latest_data'), function ($join) {
+                $join->on('wl_sensors.id', '=', 'latest_data.sensor_id');
+            })
+                ->leftJoin('wl_data_sensors', function ($join) {
+                    $join->on('wl_sensors.id', '=', 'wl_data_sensors.sensor_id')
+                        ->on('wl_data_sensors.timestamp', '=', 'latest_data.latest_timestamp');
+                })
+                ->select('wl_sensors.*', 'wl_data_sensors.*');
         }])
+            ->orderBy('id', 'asc')
             ->get();
 
         return $data;
