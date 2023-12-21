@@ -60,44 +60,53 @@ class DataSensorController extends Controller
         return $data;
     }
 
-    public function awsFilter(Request $request)
+    public function awsDetail(Request $request, $sn)
     {
         try {
-            // Validasi input
-            $request->validate([
-                'logger_sn' => 'required', // Sesuaikan dengan nama field di form atau parameter yang diterima
-                'start' => 'required',
-                'end' => 'required',
-            ]);
+            // Validasi input, pastikan path parameter sn logger diisi
+            if (empty($sn)) {
+                throw new \Exception('Nomor Seri Logger harus diisi');
+            }
 
-            $loggerSn = $request->input('logger_sn');
-            $start = $request->input('start');
-            $end = $request->input('end');
+            // Ambil data berdasarkan SN logger yang diinput pengguna
+            $data = Loggers::with('sensors.dataSensor')
+                ->where('sn', $sn)
+                ->first();
 
-            // Menggunakan eloquent untuk mendapatkan data sesuai filter
-            $data = Loggers::where('sn', $loggerSn)
-                ->with(['sensors.dataSensor' => function ($query) use ($start, $end) {
-                    $query->whereBetween('timestamp', [$start, $end]);
-                }])
-                ->get();
+            // Jika logger tidak ditemukan, lempar exception
+            if (!$data) {
+                throw new \Exception('Logger Tidak Ditemukan');
+            }
 
-            // Menyusun data logger dan timestamp
-            $loggers = $data->map(function ($logger) {
-                return [
-                    'logger' => $logger->sn,
-                    'timestamp' => $logger->sensors->flatMap(function ($sensor) {
-                        return $sensor->dataSensor->pluck('timestamp');
-                    })->unique()->values(),
-                ];
-            });
+            return $data;
+        } catch (\Exception $e) {
+            // Tangkap kesalahan dan kirimkan respons dengan pesan kesalahan
+            return response()->json(['error' => $e->getMessage()], 404);
+        }
+    }
 
-            return response()->json($loggers);
-        } catch (QueryException $exception) {
-            // Tangkap eksepsi jika terjadi kesalahan SQL
-            return response()->json(['error' => 'Gagal mengambil data. ' . $exception->getMessage()], 500);
-        } catch (\Exception $exception) {
-            // Tangkap eksepsi umum
-            return response()->json(['error' => 'Terjadi kesalahan. ' . $exception->getMessage()], 500);
+    public function awlrDetail(Request $request, $sn)
+    {
+        try {
+            // Validasi input, pastikan path parameter sn logger diisi
+            if (empty($sn)) {
+                throw new \Exception('Nomor Seri Logger harus diisi');
+            }
+
+            // Ambil data berdasarkan SN logger yang diinput pengguna
+            $data = WlLogger::with('sensors.dataSensor')
+                ->where('sn', $sn)
+                ->first();
+
+            // Jika logger tidak ditemukan, lempar exception
+            if (!$data) {
+                throw new \Exception('Logger Tidak Ditemukan');
+            }
+
+            return $data;
+        } catch (\Exception $e) {
+            // Tangkap kesalahan dan kirimkan respons dengan pesan kesalahan
+            return response()->json(['error' => $e->getMessage()], 404);
         }
     }
 }

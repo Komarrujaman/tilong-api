@@ -54,7 +54,8 @@ Route::get('/awlrHobo', [WLController::class, 'awlr']);
 // AWS
 Route::get('aws-data', [DataSensorController::class, 'index']);
 Route::get('aws-last', [DataSensorController::class, 'awsLast']);
-Route::post('aws-filter', [DataSensorController::class, 'awsFilter']);
+Route::post('aws-detail/{sn}', [DataSensorController::class, 'awsDetail']);
 // WL
 Route::get('awlr-data', [DataSensorController::class, 'waterLevel']);
 Route::get('awlr-last', [DataSensorController::class, 'awlrLast']);
+Route::post('awlr-detail/{sn}', [DataSensorController::class, 'awlrDetail']);
