@@ -29,6 +29,6 @@ class Awlr extends Command
         $wlController = new WLController();
         $wlController->fetchDataAndSave();
 
-        $this->info('AWLR Data fetched and saved successfully!');
+        $this->info('AWLR Data fetched and saved success!');
     }
 }
