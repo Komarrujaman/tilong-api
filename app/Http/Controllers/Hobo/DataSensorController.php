@@ -69,7 +69,9 @@ class DataSensorController extends Controller
             }
 
             // Ambil data berdasarkan SN logger yang diinput pengguna
-            $data = Loggers::with('sensors.dataSensor')
+            $data = Loggers::with(['sensors.dataSensor' => function ($query) {
+                $query->orderBy('timestamp', 'desc');
+            }])
                 ->where('sn', $sn)
                 ->first();
 
