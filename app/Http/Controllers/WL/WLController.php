@@ -1,16 +1,20 @@
 <?php
 
-namespace App\Http\Controllers\Hobo;
+namespace App\Http\Controllers\Wl;
 
 use App\Http\Controllers\Controller;
-use App\Models\Hobo\{Hobo, Loggers, Sensors, DataSensor};
+use App\Http\Controllers\WL\WlLoggerController;
+use App\Models\WL\WlDataSensor;
+use App\Models\WL\WlLogger;
+use App\Models\WL\WlSensor;
+use Illuminate\Support\Facades\Session;
 use GuzzleHttp\Client;
 use GuzzleHttp\Psr7\Request;
-use Illuminate\Support\Facades\Session;
 use GuzzleHttp\Exception\RequestException;
 
-class HoboController extends Controller
+class WLController extends Controller
 {
+
     public function login()
     {
         $client = new Client();
@@ -39,7 +43,7 @@ class HoboController extends Controller
         return $res;
     }
 
-    public function aws()
+    public function awlr()
     {
         // Periksa apakah token tersedia di session
         if (!Session::has('token_hobo')) {
@@ -52,7 +56,7 @@ class HoboController extends Controller
                 Session::put('token_hobo', $loginResult->access_token);
 
                 // Coba kembali permintaan API dengan token baru
-                return $this->aws();
+                return $this->awlr();
             } else {
                 // Jika login gagal, kembalikan respons kesalahan
                 return response()->json(['error' => 'Login failed.'], 401);
@@ -64,35 +68,40 @@ class HoboController extends Controller
         $headers = [
             'Authorization' => 'Bearer ' . $token
         ];
+        $wl_logger = WlLogger::allLogger();
+        $observationList = [];
 
-        try {
-            $request = new Request('GET', 'https://webservice.hobolink.com/ws/data/file/JSON/user/30859?loggers=20780458&start_date_time=2023-12-20 17:00:00&end_date_time=2023-12-21 08:00:00', $headers);
-            $response = $client->sendAsync($request)->wait();
-            $res = json_decode($response->getBody());
+        foreach ($wl_logger as $index) {
+            $sn = $index['logger_sn'];
+            try {
+                $request = new Request('GET', 'https://webservice.hobolink.com/ws/data/file/JSON/user/30859?loggers=' . $sn . '&start_date_time=2023-12-20 17:00:00&end_date_time=2023-12-21 08:00:00', $headers);
+                $response = $client->sendAsync($request)->wait();
+                $res = json_decode($response->getBody());
+                $observationList = array_merge($observationList, $res->{'observation_list'});
+            } catch (RequestException $e) {
+                // Lakukan penanganan kesalahan, misalnya token kadaluwarsa
+                if ($e->getResponse() && $e->getResponse()->getStatusCode() == 401) {
+                    // Jika mendeteksi token kadaluwarsa, panggil fungsi login
+                    $loginResult = $this->login();
 
-            return $res->{'observation_list'};
-        } catch (RequestException $e) {
-            // Lakukan penanganan kesalahan, misalnya token kadaluwarsa
-            if ($e->getResponse() && $e->getResponse()->getStatusCode() == 401) {
-                // Jika mendeteksi token kadaluwarsa, panggil fungsi login
-                $loginResult = $this->login();
+                    // Periksa apakah login berhasil
+                    if (property_exists($loginResult, 'access_token')) {
+                        // Jika berhasil, simpan token ke dalam session
+                        Session::put('token_hobo', $loginResult->access_token);
 
-                // Periksa apakah login berhasil
-                if (property_exists($loginResult, 'access_token')) {
-                    // Jika berhasil, simpan token ke dalam session
-                    Session::put('token_hobo', $loginResult->access_token);
-
-                    // Coba kembali permintaan API dengan token baru
-                    return $this->aws();
-                } else {
-                    // Jika login gagal, kembalikan respons kesalahan
-                    return response()->json(['error' => 'Login failed.'], 401);
+                        // Coba kembali permintaan API dengan token baru
+                        return $this->awlr();
+                    } else {
+                        // Jika login gagal, kembalikan respons kesalahan
+                        return response()->json(['error' => 'Login failed.'], 401);
+                    }
                 }
-            }
 
-            // Penanganan kesalahan lainnya
-            return response()->json(['error' => 'Something went wrong.'], 500);
+                // Penanganan kesalahan lainnya
+                return response()->json(['error' => 'Something went wrong.'], 500);
+            }
         }
+        return $observationList;
     }
 
     public function saveDataFromApi($apiData)
@@ -102,12 +111,12 @@ class HoboController extends Controller
             $apiDatumArray = json_decode(json_encode($apiDatum), true);
 
             // Cek dan simpan logger
-            $logger = Loggers::firstOrNew(['sn' => $apiDatumArray['logger_sn']]);
+            $logger = WlLogger::firstOrNew(['sn' => $apiDatumArray['logger_sn']]);
             // Set atribut logger sesuai data yang diterima
             $logger->save();
 
             // Cek dan simpan sensor
-            $sensor = Sensors::firstOrNew([
+            $sensor = WlSensor::firstOrNew([
                 'logger_id' => $logger->id,
                 'sensor_sn' => $apiDatumArray['sensor_sn'],
             ]);
@@ -117,14 +126,14 @@ class HoboController extends Controller
             $sensor->save();
 
             // Cek apakah data sensor dengan timestamp yang sama sudah ada
-            $existingDataSensor = DataSensor::where([
+            $existingDataSensor = WlDataSensor::where([
                 'sensor_id' => $sensor->id,
                 'timestamp' => $apiDatumArray['timestamp'],
             ])->first();
 
             if (!$existingDataSensor) {
                 // Simpan data sensor karena belum ada data dengan timestamp yang sama
-                $dataSensor = new DataSensor([
+                $dataSensor = new WlDataSensor([
                     'sensor_id' => $sensor->id,
                     'data_type_id' => $apiDatumArray['data_type_id'],
                     'si_value' => $apiDatumArray['si_value'],
@@ -144,7 +153,7 @@ class HoboController extends Controller
     public function fetchDataAndSave()
     {
         // Panggil metode aws untuk mendapatkan data
-        $apiData = $this->aws();
+        $apiData = $this->awlr();
 
         // Panggil metode saveDataFromApi untuk menyimpan data
         $response = $this->saveDataFromApi($apiData);

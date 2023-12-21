@@ -1,9 +1,12 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\Hobo\DataSensorController;
 use App\Http\Controllers\Hobo\HoboController;
 use App\Http\Controllers\Hobo\LoggerController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\Wl\WLController;
+use App\Http\Controllers\WL\WlLoggerController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -39,5 +42,14 @@ Route::get('awsHobo', [HoboController::class, 'aws']);
 
 
 // Device Management
-// Logger Management
+// AWS Logger Management
 Route::post('/logger/add', [LoggerController::class, 'store']);
+
+// AWLR Logger management
+Route::post('/awlr/logger/add', [WlLoggerController::class, 'store']);
+Route::get('/awlr/logger/all', [WlLoggerController::class, 'index']);
+Route::get('/awlrHobo', [WLController::class, 'awlr']);
+
+// Data Management
+// AWS
+Route::get('aws-data', [DataSensorController::class, 'index']);

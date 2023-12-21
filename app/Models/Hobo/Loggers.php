@@ -10,4 +10,8 @@ class Loggers extends Model
     use HasFactory;
 
     protected $fillable = ['sn', 'nama', 'lat', 'lng'];
+    public function sensors()
+    {
+        return $this->hasMany(Sensors::class, 'logger_id');
+    }
 }
