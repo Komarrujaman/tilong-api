@@ -9,6 +9,7 @@ use App\Models\Hobo\Loggers;
 use App\Models\WL\WlLogger;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class DataSensorController extends Controller
 {
@@ -70,6 +71,8 @@ class DataSensorController extends Controller
 
             // Ambil data berdasarkan SN logger yang diinput pengguna
             $data = Loggers::with(['sensors.dataSensor' => function ($query) {
+                // Menambahkan kondisi untuk memilih data hanya dalam dua hari terakhir dari timestamp terakhir
+                $query->where('timestamp', '>', Carbon::now()->subDays(2)->toDateTimeString());
                 $query->orderBy('timestamp', 'desc');
             }])
                 ->where('sn', $sn)
