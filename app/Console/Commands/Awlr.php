@@ -2,19 +2,17 @@
 
 namespace App\Console\Commands;
 
-use App\Http\Controllers\Hobo\HoboController;
+use App\Http\Controllers\Wl\WLController;
 use Illuminate\Console\Command;
-use GuzzleHttp\Client;
-use GuzzleHttp\Psr7\Request;
 
-class getDataHobo extends Command
+class Awlr extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'get:hobo';
+    protected $signature = 'get:awlr';
 
     /**
      * The console command description.
@@ -28,9 +26,9 @@ class getDataHobo extends Command
      */
     public function handle()
     {
-        $hoboController = new HoboController();
-        $hoboController->fetchDataAndSave();
+        $wlController = new WLController();
+        $wlController->fetchDataAndSave();
 
-        $this->info('AWS Data fetched and saved successfully!');
+        $this->info('AWLR Data fetched and saved successfully!');
     }
 }
