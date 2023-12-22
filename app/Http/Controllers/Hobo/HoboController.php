@@ -229,6 +229,12 @@ class HoboController extends Controller
                 $request = new Request('GET', 'https://webservice.hobolink.com/ws/data/file/JSON/user/30859?loggers=' . $sn . '&start_date_time=' . $startDate->toDateTimeString() . '&end_date_time=' . $endDate->toDateTimeString(), $headers);
                 $response = $client->sendAsync($request)->wait();
                 $res = json_decode($response->getBody());
+                foreach ($res->{'observation_list'} as $observation) {
+                    $utcTimestamp = new DateTime($observation->timestamp, new DateTimeZone('UTC'));
+                    $utcTimestamp->setTimezone(new DateTimeZone('Asia/Makassar')); // Ganti dengan 'Asia/Samarinda' jika perlu
+
+                    $observation->timestamp = $utcTimestamp->format('Y-m-d H:i:s');
+                }
                 $observationList = array_merge($observationList, $res->{'observation_list'});
             } catch (RequestException $e) {
                 // Lakukan penanganan kesalahan, misalnya token kadaluwarsa
