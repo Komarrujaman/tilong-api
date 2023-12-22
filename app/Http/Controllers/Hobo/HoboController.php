@@ -13,6 +13,8 @@ use Illuminate\Support\Facades\Session;
 use GuzzleHttp\Exception\RequestException;
 use DateTime;
 use DateTimeZone;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Response;
 
 class HoboController extends Controller
 {
@@ -76,10 +78,13 @@ class HoboController extends Controller
         foreach ($aws_logger as $index) {
             $sn  = $index['logger_sn'];
             try {
-                $request = new Request('GET', 'https://webservice.hobolink.com/ws/data/file/JSON/user/30859?loggers=' . $sn . '&start_date_time=2023-12-21 14:00:00&end_date_time=2023-12-21 22:40:00', $headers);
+                $currentTimeUTC = Carbon::now('UTC');
+                $startDate = $currentTimeUTC->copy()->subHour(); // Mengurangkan waktu sebanyak 1 jam dari waktu UTC sekarang
+                $endDate = $currentTimeUTC; // Menggunakan waktu UTC sekarang
+
+                $request = new Request('GET', 'https://webservice.hobolink.com/ws/data/file/JSON/user/30859?loggers=' . $sn . '&start_date_time=' . $startDate->toDateTimeString() . '&end_date_time=' . $endDate->toDateTimeString(), $headers);
                 $response = $client->sendAsync($request)->wait();
                 $res = json_decode($response->getBody());
-
                 // Konversi timestamp dari UTC ke zona waktu Samarinda
                 foreach ($res->{'observation_list'} as $observation) {
                     $utcTimestamp = new DateTime($observation->timestamp, new DateTimeZone('UTC'));
@@ -113,6 +118,15 @@ class HoboController extends Controller
             }
         }
         return $observationList;
+    }
+
+    public function awsTest()
+    {
+        // Panggil fungsi aws
+        $result = $this->aws();
+
+        // Tampilkan hasil sebagai JSON
+        return Response::json($result);
     }
 
     public function saveDataFromApi($apiData)
@@ -208,7 +222,11 @@ class HoboController extends Controller
         foreach ($wl_logger as $index) {
             $sn = $index['logger_sn'];
             try {
-                $request = new Request('GET', 'https://webservice.hobolink.com/ws/data/file/JSON/user/30859?loggers=' . $sn . '&start_date_time=2023-12-21 14:00:00&end_date_time=2023-12-21 22:40:00', $headers);
+                $currentTimeUTC = Carbon::now('UTC');
+                $startDate = $currentTimeUTC->copy()->subHour(12); // Mengurangkan waktu sebanyak 1 jam dari waktu UTC sekarang
+                $endDate = $currentTimeUTC; // Menggunakan waktu UTC sekarang
+
+                $request = new Request('GET', 'https://webservice.hobolink.com/ws/data/file/JSON/user/30859?loggers=' . $sn . '&start_date_time=' . $startDate->toDateTimeString() . '&end_date_time=' . $endDate->toDateTimeString(), $headers);
                 $response = $client->sendAsync($request)->wait();
                 $res = json_decode($response->getBody());
                 $observationList = array_merge($observationList, $res->{'observation_list'});

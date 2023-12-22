@@ -24,6 +24,7 @@ Route::get('/', function () {
 
 // Hobo Endpoint
 Route::get('loginHobo', [HoboController::class, 'login']);
+Route::get('awsTest', [HoboController::class, 'awsTest']);
 Route::get('awsHobo', [HoboController::class, 'aws']);
 Route::get('/fetch-and-save', [HoboController::class, 'fetchDataAndSave']);
 Route::get('aws-db', [DataSensorController::class, 'index']);
