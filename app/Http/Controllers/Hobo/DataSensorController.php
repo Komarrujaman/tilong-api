@@ -72,8 +72,8 @@ class DataSensorController extends Controller
             // Ambil data berdasarkan SN logger yang diinput pengguna
             $data = Loggers::with(['sensors.dataSensor' => function ($query) {
                 // Menambahkan kondisi untuk memilih data hanya dalam dua hari terakhir dari timestamp terakhir
-                $query->where('timestamp', '>', Carbon::now()->subDays(2)->toDateTimeString());
-                $query->orderBy('timestamp', 'desc');
+                $query->where('timestamp', '>', Carbon::now()->subDays(1)->toDateTimeString());
+                $query->orderBy('timestamp', 'asc');
             }])
                 ->where('sn', $sn)
                 ->first();
