@@ -146,7 +146,7 @@ class AuthController extends Controller
 
     public function allUser()
     {
-        $user = User::all();
+        $user = User::with('role')->get();
         return $user;
     }
     public function destroy(Request $request, $id)
